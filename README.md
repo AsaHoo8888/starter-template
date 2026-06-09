@@ -91,3 +91,30 @@ git commit -m "Initial website"
 git remote set-url origin git@github.com:AsaHoo8888/your-repo.git
 git push -u origin main
 ```
+
+## Hostinger VPS Docker Manager
+
+Use this Docker Compose URL in Hostinger Docker Manager:
+
+```txt
+https://raw.githubusercontent.com/AsaHoo8888/starter-template/main/deploy/hostinger-compose.yml
+```
+
+Before using it for a real public site, edit `deploy/hostinger-compose.yml` and
+replace:
+
+- `change-this-postgres-password`
+- `replace-with-a-long-random-key`
+- `replace-with-a-long-random-secret`
+- `admin@example.com`
+- `change-this-admin-password`
+- `2.25.185.14` with your VPS IP or domain
+
+The Hostinger project runs three services:
+
+- `postgres`: internal PostgreSQL database
+- `directus`: CMS on port `8055`
+- `nextjs`: website on port `3000`
+
+After local changes, push to GitHub and redeploy/restart the Hostinger project so
+the `nextjs` container pulls the latest code.

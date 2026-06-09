@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD: change-this-postgres-password
+      POSTGRES_DB: directus
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U directus -d directus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  directus:
+    image: directus/directus:11
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8055:8055"
+    environment:
+      KEY: replace-with-a-long-random-key
+      SECRET: replace-with-a-long-random-secret
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: change-this-admin-password
+      DB_CLIENT: pg
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: directus
+      DB_USER: directus
+      DB_PASSWORD: change-this-postgres-password
+      PUBLIC_URL: http://2.25.185.14:8055
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "http://2.25.185.14:3000"
+    volumes:
+      - directus_uploads:/directus/uploads
+
+  nextjs:
+    image: node:22-alpine
+    restart: unless-stopped
+    depends_on:
+      - directus
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_SITE_URL: http://2.25.185.14:3000
+      NEXT_PUBLIC_DIRECTUS_URL: http://directus:8055
+      DIRECTUS_STATIC_TOKEN: ""
+    volumes:
+      - nextjs_app:/app
+    command: >
+      sh -c "apk add --no-cache git &&
+      if [ ! -d .git ]; then
+        git clone --depth=1 https://github.com/AsaHoo8888/starter-template.git .;
+      else
+        git pull --ff-only;
+      fi &&
+      npm ci &&
+      npm run build &&
+      npm run start"
+
+volumes:
+  postgres_data:
+  directus_uploads:
+  nextjs_app:
